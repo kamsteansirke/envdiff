@@ -41,6 +41,19 @@ class EnvDiff:
                 lines.append(f"    ~ {key}: {base_val!r} -> {target_val!r}")
         return "\n".join(lines)
 
+    def stats(self) -> Dict[str, int]:
+        """Return a summary of difference counts by category.
+
+        Returns:
+            A dict with keys 'missing_in_target', 'missing_in_base', and
+            'mismatched', each mapping to the count of affected keys.
+        """
+        return {
+            "missing_in_target": len(self.missing_in_target),
+            "missing_in_base": len(self.missing_in_base),
+            "mismatched": len(self.mismatched),
+        }
+
 
 def compare_envs(
     base: Dict[str, Optional[str]],
