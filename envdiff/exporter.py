@@ -65,7 +65,7 @@ def _render(rows: List[dict], fmt: ExportFormat) -> str:
         return _to_csv(rows)
     if fmt == "markdown":
         return _to_markdown(rows)
-    raise ValueError(f"Unsupported export format: {fmt}")
+    raise ValueError(f"Unsupported export format: {fmt!r}. Valid formats are: json, csv, markdown")
 
 
 def _to_csv(rows: List[dict]) -> str:
@@ -85,5 +85,7 @@ def _to_markdown(rows: List[dict]) -> str:
     lines = ["| " + " | ".join(headers) + " |",
              "| " + " | ".join(["---"] * len(headers)) + " |"]
     for row in rows:
-        lines.append("| " + " | ".join(str(row.get(h, "")) for h in headers) + " |")
+        # Escape pipe characters in cell values to avoid breaking the table
+        cells = [str(row.get(h, "")).replace("|", "\\|") for h in headers]
+        lines.append("| " + " | ".join(cells) + " |")
     return "\n".join(lines) + "\n"
