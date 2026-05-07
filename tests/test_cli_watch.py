@@ -89,3 +89,22 @@ def test_run_watch_returns_zero(env_dir: Path) -> None:
         MockWatcher.return_value = MagicMock()
         result = _run_watch(args)
     assert result == 0
+
+
+def test_run_watch_passes_multiple_targets(env_dir: Path) -> None:
+    """Verify that multiple target files are forwarded to EnvWatcher."""
+    base = env_dir / ".env"
+    target1 = env_dir / ".env.prod"
+    target2 = env_dir / ".env.staging"
+    _write(base, "KEY=1\n")
+    _write(target1, "KEY=1\n")
+    _write(target2, "KEY=2\n")
+
+    args = _make_args(base, [target1, target2])
+
+    with patch("envdiff.cli_watch.EnvWatcher") as MockWatcher:
+        instance = MagicMock()
+        MockWatcher.return_value = instance
+        _run_watch(args)
+        _, kwargs = MockWatcher.call_args
+        assert kwargs["targets"] == [target1, target2]
