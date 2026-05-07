@@ -59,7 +59,11 @@ def _run_template(args: argparse.Namespace) -> int:
 
     if args.output:
         out = Path(args.output)
-        result.write(out)
+        try:
+            result.write(out)
+        except OSError as exc:
+            print(f"error: could not write to {out}: {exc}", file=sys.stderr)
+            return 1
         print(f"Template written to {out} ({len(result.keys)} keys).")
     else:
         print(result.render())
