@@ -27,6 +27,10 @@ class TagResult:
             result.update(tags)
         return frozenset(result)
 
+    def untagged_keys(self, env: Mapping[str, str]) -> List[str]:
+        """Return keys present in *env* that received no tag, sorted alphabetically."""
+        return sorted(k for k in env if k not in self.tagged)
+
     def summary(self) -> str:
         """Human-readable one-liner."""
         n_keys = len(self.tagged)
