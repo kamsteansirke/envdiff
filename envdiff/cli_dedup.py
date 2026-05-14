@@ -28,16 +28,32 @@ def add_dedup_subparser(subparsers) -> None:  # type: ignore[type-arg]
     p.set_defaults(func=_run_dedup)
 
 
+def _process_file(path: Path) -> tuple[bool, int]:
+    """Process a single file for duplicates.
+
+    Returns a tuple of (has_duplicates, exit_code) where exit_code is non-zero
+    on error (e.g. file not found or unreadable).
+    """
+    if not path.exists():
+        print(f"error: file not found: {path}", file=sys.stderr)
+        return False, 2
+    try:
+        result = find_duplicates(path)
+    except OSError as exc:
+        print(f"error: could not read {path}: {exc}", file=sys.stderr)
+        return False, 2
+    print(result.summary())
+    return result.has_duplicates, 0
+
+
 def _run_dedup(args: Namespace) -> int:
+    """Entry point for the 'dedup' sub-command."""
     found_any = False
     for raw in args.files:
-        path = Path(raw)
-        if not path.exists():
-            print(f"error: file not found: {path}", file=sys.stderr)
-            return 2
-        result = find_duplicates(path)
-        print(result.summary())
-        if result.has_duplicates:
+        has_duplicates, error_code = _process_file(Path(raw))
+        if error_code:
+            return error_code
+        if has_duplicates:
             found_any = True
 
     if args.strict and found_any:
