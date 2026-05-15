@@ -66,6 +66,11 @@ def parse_env_file(filepath: str | Path) -> Dict[str, Optional[str]]:
                 f"Empty key at line {lineno} in {filepath}: {raw_line!r}"
             )
 
+        if not _is_valid_key(key):
+            raise EnvParseError(
+                f"Invalid key {key!r} at line {lineno} in {filepath}: {raw_line!r}"
+            )
+
         # Strip inline comments (only outside quotes)
         value = _strip_inline_comment(value)
 
@@ -75,6 +80,20 @@ def parse_env_file(filepath: str | Path) -> Dict[str, Optional[str]]:
         env[key] = value
 
     return env
+
+
+def _is_valid_key(key: str) -> bool:
+    """Return True if *key* is a valid environment variable name.
+
+    A valid name starts with a letter or underscore and contains only
+    letters, digits, and underscores (POSIX convention).
+    """
+    if not key:
+        return False
+    first, *rest = key
+    if not (first.isalpha() or first == "_"):
+        return False
+    return all(ch.isalnum() or ch == "_" for ch in rest)
 
 
 def _strip_inline_comment(value: str) -> str:
